@@ -31,7 +31,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Install Capacitor CLI
         run: npm install -g @capacitor/cli
@@ -82,7 +82,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Install Capacitor CLI
         run: npm install -g @capacitor/cli
