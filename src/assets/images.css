@@ -1,0 +1,145 @@
+/* Фоновые изображения и паттерны для RoadHelp */
+
+/* Градиент российских дорог - рассвет на трассе */
+.road-gradient-sunrise {
+  background: linear-gradient(135deg, 
+    #FF6B6B 0%,    /* Рассветный красный */
+    #FFB347 25%,   /* Золотой */
+    #4ECDC4 50%,   /* Небесно-голубой */
+    #45B7D1 75%,   /* Дорожный синий */
+    #2C3E50 100%   /* Асфальт */
+  );
+}
+
+/* Градиент ночной трассы */
+.road-gradient-night {
+  background: linear-gradient(135deg,
+    #0F2027 0%,    /* Тёмное небо */
+    #203A43 50%,   /* Сумерки */
+    #2C5364 100%   /* Ночная дорога */
+  );
+}
+
+/* Градиент дневной дороги */
+.road-gradient-day {
+  background: linear-gradient(135deg,
+    #56CCF2 0%,    /* Светлое небо */
+    #2F80ED 50%,   /* Дневное небо */
+    #1E3A8A 100%   /* Глубокий синий */
+  );
+}
+
+/* Паттерн дорожной разметки */
+.road-pattern {
+  background-image: 
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 50px,
+      rgba(255, 255, 255, 0.1) 50px,
+      rgba(255, 255, 255, 0.1) 60px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 100px,
+      rgba(255, 255, 255, 0.05) 100px,
+      rgba(255, 255, 255, 0.05) 110px
+    );
+}
+
+/* Эффект движения по дороге */
+@keyframes road-movement {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 100% 100%;
+  }
+}
+
+.road-animated {
+  animation: road-movement 60s linear infinite;
+  background-size: 200% 200%;
+}
+
+/* Overlay для изображений - затемнение для читаемости */
+.road-overlay {
+  position: relative;
+}
+
+.road-overlay::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(37, 99, 235, 0.85) 0%,
+    rgba(29, 78, 216, 0.9) 100%
+  );
+  z-index: 1;
+}
+
+.road-overlay > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Эффект дорожного горизонта */
+.horizon-effect {
+  background: linear-gradient(
+    to bottom,
+    #87CEEB 0%,     /* Небо */
+    #B0E0E6 40%,    /* Светлое небо */
+    #F5F5DC 60%,    /* Горизонт */
+    #696969 100%    /* Асфальт */
+  );
+}
+
+/* Паттерн российских просторов */
+.russian-roads-pattern {
+  background-image:
+    radial-gradient(circle at 20% 80%, rgba(255, 107, 107, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(78, 205, 196, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(255, 179, 71, 0.1) 0%, transparent 50%);
+  background-size: 100% 100%;
+}
+
+/* Эффект асфальта */
+.asphalt-texture {
+  background-color: #2C3E50;
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 2px,
+      rgba(255, 255, 255, 0.02) 2px,
+      rgba(255, 255, 255, 0.02) 4px
+    );
+}
+
+/* Анимация облаков над дорогой */
+@keyframes clouds-move {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.clouds-animation {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(ellipse at 20% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 40%),
+    radial-gradient(ellipse at 60% 40%, rgba(255, 255, 255, 0.2) 0%, transparent 40%),
+    radial-gradient(ellipse at 40% 20%, rgba(255, 255, 255, 0.25) 0%, transparent 40%);
+  animation: clouds-move 120s linear infinite;
+  opacity: 0.3;
+}
+

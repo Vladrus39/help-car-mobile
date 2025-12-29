@@ -1,0 +1,83 @@
+
+      <!-- Панель запросов (только для авторизованных) -->
+      <div
+        v-if="currentUser && isPanelVisible"
+        class="absolute top-2 left-2 sm:top-6 sm:left-6 w-[calc(100%-1rem)] sm:w-80 h-[30vh] sm:h-[60vh] bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col z-[1100] border-2 border-white/50 dark:border-slate-600/50 mobile-requests-panel pointer-events-auto"
+      >
+        <!-- Header -->
+        <div class="flex items-center justify-between p-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white relative overflow-hidden">
+          <div class="flex-1">
+            <h2 class="text-xl font-black mb-1">🎯 Активные запросы</h2>
+            <div class="flex items-center space-x-2">
+              <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
+              <p class="text-blue-100 font-bold text-sm">{{ filteredRequests.length }} рядом с вами</p>
+            </div>
+          </div>
+          <button
+            @click="isPanelVisible = false"
+            class="px-3 py-3 text-white hover:bg-white/20 rounded-xl transition"
+            title="Скрыть панель"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Список запросов -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-3">
+          <!-- Skeleton при загрузке -->
+          <div v-if="isLoadingRequests" class="space-y-3">
+            <div v-for="i in 3" :key="i" class="p-4 border-2 border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 animate-pulse">
+              <div class="flex items-start space-x-3">
+                <div class="w-12 h-12 bg-gray-200 dark:bg-slate-600 rounded-xl" />
+                <div class="flex-1">
+                  <div class="h-5 bg-gray-200 dark:bg-slate-600 rounded w-3/4 mb-2" />
+                  <div class="h-4 bg-gray-200 rounded w-full mb-2" />
+                  <div class="h-4 bg-gray-200 rounded w-1/2" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Список запросов -->
+          <div
+            v-for="request in filteredRequests"
+            v-else
+            :key="request.id"
+            class="group p-4 border-2 border-gray-200 dark:border-slate-600 rounded-xl hover:border-blue-500 hover:shadow-xl transition-all cursor-pointer bg-gradient-to-br from-white to-blue-50/30 dark:from-slate-700 dark:to-slate-800"
+            @click="focusOnRequest(request)"
+          >
+            <div class="flex items-start space-x-3">
+              <div :class="['w-12 h-12 rounded-xl flex items-center justify-center shadow-md', getIconGradient(request.problem_type)]">
+                <span class="text-2xl">{{ getIcon(request.problem_type) }}</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between mb-1">
+                  <h3 class="text-base font-black text-gray-900 dark:text-white truncate">
+                    {{ getProblemTypeName(request.problem_type) }}
+                  </h3>
+                  <div class="px-2 py-1 bg-gradient-to-r from-green-400 to-green-600 rounded-lg shadow-sm ml-2 flex-shrink-0">
+                    <span class="text-white font-bold text-sm">{{ request.amount }} ₽</span>
+                  </div>
+                </div>
+                <p class="text-sm text-gray-700 dark:text-gray-200 line-clamp-2 mb-2">{{ request.description }}</p>
+                <div class="flex items-center justify-between text-xs text-gray-500">
+                  <span>📍 {{ request.distance || 'Рядом' }}</span>
+                  <span>🕒 {{ formatDate(request.created_at) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="!isLoadingRequests && filteredRequests.length === 0" class="text-center py-12">
+            <div class="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+              </svg>
+            </div>
+            <p class="text-gray-500 text-base font-semibold">Нет запросов поблизости</p>
+          </div>
+        </div>
+      </div>
+

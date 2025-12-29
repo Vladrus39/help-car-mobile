@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Service Worker - Help-Car</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        h1 { margin-top: 0; font-size: 2em; }
+        button {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            min-height: 100px;
+        }
+        .success { color: #4ade80; }
+        .error { color: #f87171; }
+        .info { color: #60a5fa; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Service Worker Reset</h1>
+        <p>Если приложение не загружается или показывает ошибки, нажмите кнопку ниже для полного сброса Service Worker и кеша.</p>
+        
+        <div class="status" id="status">
+            <p class="info">Готов к сбросу...</p>
+        </div>
+        
+        <button id="resetBtn" onclick="resetServiceWorker()">🗑️ Сбросить Service Worker</button>
+        <button onclick="window.location.href='/'">🏠 На главную</button>
+    </div>
+
+    <script>
+        async function resetServiceWorker() {
+            const statusDiv = document.getElementById('status');
+            const btn = document.getElementById('resetBtn');
+            btn.disabled = true;
+            
+            statusDiv.innerHTML = '<p class="info">⏳ Начинаем сброс...</p>';
+            
+            try {
+                // 1. Удаляем все Service Workers
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    statusDiv.innerHTML += `<p class="info">📋 Найдено Service Workers: ${registrations.length}</p>`;
+                    
+                    for (let registration of registrations) {
+                        await registration.unregister();
+                        statusDiv.innerHTML += '<p class="success">✅ Service Worker удалён</p>';
+                    }
+                } else {
+                    statusDiv.innerHTML += '<p class="info">ℹ️ Service Worker не поддерживается</p>';
+                }
+                
+                // 2. Очищаем все кеши
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    statusDiv.innerHTML += `<p class="info">📦 Найдено кешей: ${cacheNames.length}</p>`;
+                    
+                    for (let cacheName of cacheNames) {
+                        await caches.delete(cacheName);
+                        statusDiv.innerHTML += `<p class="success">✅ Кеш удалён: ${cacheName}</p>`;
+                    }
+                } else {
+                    statusDiv.innerHTML += '<p class="info">ℹ️ Cache API не поддерживается</p>';
+                }
+                
+                // 3. Очищаем localStorage (опционально)
+                const clearLS = confirm('Очистить localStorage? (будет выполнен выход из аккаунта)');
+                if (clearLS) {
+                    localStorage.clear();
+                    statusDiv.innerHTML += '<p class="success">✅ LocalStorage очищен</p>';
+                }
+                
+                // 4. Очищаем sessionStorage
+                sessionStorage.clear();
+                statusDiv.innerHTML += '<p class="success">✅ SessionStorage очищен</p>';
+                
+                statusDiv.innerHTML += '<p class="success" style="font-size: 1.2em; margin-top: 20px;">🎉 Сброс завершён!</p>';
+                statusDiv.innerHTML += '<p class="info">Перезагрузите страницу для применения изменений.</p>';
+                
+                // Автоматическая перезагрузка через 3 секунды
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 3000);
+                
+            } catch (error) {
+                statusDiv.innerHTML += `<p class="error">❌ Ошибка: ${error.message}</p>`;
+                btn.disabled = false;
+            }
+        }
+        
+        // Показываем текущее состояние при загрузке
+        window.addEventListener('load', async () => {
+            const statusDiv = document.getElementById('status');
+            let info = '<p class="info"><strong>Текущее состояние:</strong></p>';
+            
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                info += `<p>Service Workers: ${registrations.length}</p>`;
+            }
+            
+            if ('caches' in window) {
+                const cacheNames = await caches.keys();
+                info += `<p>Кеши: ${cacheNames.length}</p>`;
+                if (cacheNames.length > 0) {
+                    info += '<p style="font-size: 0.9em;">(' + cacheNames.join(', ') + ')</p>';
+                }
+            }
+            
+            statusDiv.innerHTML = info;
+        });
+    </script>
+</body>
+</html>

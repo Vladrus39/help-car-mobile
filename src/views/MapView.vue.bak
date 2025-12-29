@@ -1,0 +1,799 @@
+<template>
+  <div class="h-screen flex flex-col relative overflow-hidden">
+    <!-- Фоновый градиент -->
+    <div class="absolute inset-0 bg-gradient-to-br from-blue-900/5 via-transparent to-purple-900/5 pointer-events-none" />
+    
+    <NavigationHeader />
+
+    <!-- Map Container -->
+    <div class="flex-1 relative bg-gray-100 dark:bg-slate-900">
+      <!-- OPENSTREETMAP (работает всегда!) -->
+      <OpenStreetMapWidget
+        ref="mapWidgetRef"
+        :requests="requests"
+        :is-authenticated="!!currentUser"
+        @request-clicked="handleRequestClick"
+      />
+      
+      <!-- Сообщение для неавторизованных пользователей -->
+      <div 
+        v-if="!currentUser"
+        class="absolute top-4 left-4 right-4 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl p-4 z-[1100] border-2 border-white/50 dark:border-slate-600/50"
+      >
+        <div class="text-center">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">
+            🗺 Карта Help Car
+          </h3>
+          <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">
+            Просматривайте активные запросы о помощи на карте.<br>
+            <strong>Для создания заявки необходимо войти в систему</strong>
+          </p>
+          <div class="flex space-x-2">
+            <router-link
+              to="/login"
+              class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-bold text-sm hover:bg-blue-700 transition"
+            >
+              Войти
+            </router-link>
+            <router-link
+              to="/register"
+              class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-bold text-sm hover:bg-green-700 transition"
+            >
+              Регистрация
+            </router-link>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Floating Create Request Button (только для авторизованных)
+           На мобильных — внизу справа, на больших экранах — под кнопками управления картой -->
+      <router-link
+        v-if="currentUser"
+        to="/create-request"
+        class="fixed bottom-4 right-4 sm:bottom-10 sm:right-10 group z-[1200] pointer-events-auto"
+      >
+        <div class="relative">
+          <div class="absolute inset-0 bg-red-500 rounded-2xl sm:rounded-3xl blur-2xl opacity-75 animate-pulse" />
+          <div class="relative px-4 py-3 sm:px-10 sm:py-6 bg-gradient-to-r from-red-500 via-red-600 to-red-700 text-white rounded-2xl sm:rounded-3xl shadow-2xl hover:from-red-600 hover:to-red-800 transition-all transform group-hover:scale-110 flex items-center space-x-2 sm:space-x-4">
+            <svg
+              class="w-6 h-6 sm:w-10 sm:h-10"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="3"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            <div class="hidden sm:block">
+              <div class="text-xl sm:text-3xl font-black tracking-wide">
+                НУЖНА ПОМОЩЬ!
+              </div>
+              <div class="text-xs sm:text-sm font-semibold opacity-90">
+                Создать запрос
+              </div>
+            </div>
+            <div class="sm:hidden text-sm font-bold">
+              SOS
+            </div>
+          </div>
+        </div>
+      </router-link>
+
+      <!-- Tabs для переключения между запросами и чатом (только для авторизованных) -->
+      <div 
+        v-if="currentUser && isPanelVisible"
+        class="absolute top-2 left-2 sm:top-6 sm:left-6 w-[calc(100%-1rem)] sm:w-[28rem] md:w-[32rem] h-[70vh] sm:h-[calc(100%-3rem)] bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col z-[1100] border-2 border-white/50 dark:border-slate-600/50 mobile-requests-panel"
+      >
+        <div class="flex border-b-2 border-gray-200">
+          <button
+            :class="[
+              'flex-1 px-4 py-3 sm:px-6 sm:py-4 font-black text-sm sm:text-lg transition',
+              activeTab === 'requests'
+                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'
+            ]"
+            @click="activeTab = 'requests'"
+          >
+            📋 Запросы
+          </button>
+          <button
+            :class="[
+              'flex-1 px-4 py-3 sm:px-6 sm:py-4 font-black text-sm sm:text-lg transition',
+              activeTab === 'chat'
+                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'
+            ]"
+            @click="activeTab = 'chat'"
+          >
+            💬 Чат
+          </button>
+          <!-- Кнопка скрытия панели (только на мобильных) -->
+          <button
+            class="px-3 py-3 text-gray-600 hover:bg-gray-100 transition"
+            title="Скрыть панель"
+            @click="isPanelVisible = false"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Requests Tab -->
+        <div
+          v-show="activeTab === 'requests'"
+          class="flex-1 flex flex-col overflow-hidden"
+        >
+          <div class="p-2 sm:p-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white relative overflow-hidden">
+            <div
+              class="absolute inset-0 opacity-20"
+              style="background-image: repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,255,255,0.2) 40px, rgba(255,255,255,0.2) 50px);"
+            />
+            <div class="relative z-10">
+              <h2 class="text-base sm:text-xl font-black mb-1">
+                🎯 Активные запросы
+              </h2>
+              <div class="flex items-center space-x-2">
+                <div class="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-pulse" />
+                <p class="text-blue-100 font-bold text-xs sm:text-sm">
+                  {{ filteredRequests.length }} рядом с вами
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex-1 overflow-y-auto p-2 sm:p-4 md:p-6 space-y-2 sm:space-y-4">
+            <!-- Skeleton при загрузке -->
+            <div
+              v-if="isLoadingRequests"
+              class="space-y-4"
+            >
+              <div
+                v-for="i in 3"
+                :key="i"
+                class="p-6 border-2 border-gray-200 rounded-2xl bg-white animate-pulse"
+              >
+                <div class="flex items-start space-x-4">
+                  <div class="w-16 h-16 bg-gray-200 rounded-2xl" />
+                  <div class="flex-1">
+                    <div class="h-6 bg-gray-200 rounded w-3/4 mb-2" />
+                    <div class="h-4 bg-gray-200 rounded w-full mb-2" />
+                    <div class="h-4 bg-gray-200 rounded w-1/2" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Список запросов -->
+            <div
+              v-for="request in filteredRequests"
+              v-else
+              :key="request.id"
+              class="group p-3 sm:p-6 border-2 border-gray-200 rounded-xl sm:rounded-2xl hover:border-blue-500 hover:shadow-2xl transition-all cursor-pointer transform hover:scale-105 bg-gradient-to-br from-white to-blue-50/30"
+              @click="focusOnRequest(request)"
+            >
+              <div class="flex items-start space-x-2 sm:space-x-4">
+                <div :class="['w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all', getIconGradient(request.problem_type)]">
+                  <span class="text-xl sm:text-3xl">{{ getIcon(request.problem_type) }}</span>
+                </div>
+
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-start justify-between mb-2 gap-2">
+                    <h3 class="text-sm sm:text-xl font-black text-gray-900 dark:text-white truncate">
+                      {{ getProblemTypeName(request.problem_type) }}
+                    </h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 font-semibold whitespace-nowrap">
+                      🕒 {{ formatDate(request.created_at) }}
+                    </p>
+                    <div class="px-2 sm:px-4 py-1 sm:py-2 bg-gradient-to-r from-green-400 to-green-600 rounded-lg sm:rounded-xl shadow-md flex-shrink-0">
+                      <span class="text-white font-black text-xs sm:text-lg">{{ request.amount }} ₽</span>
+                    </div>
+                  </div>
+                  <p class="text-xs sm:text-base text-gray-700 dark:text-gray-200 line-clamp-2 mb-2 sm:mb-3 leading-relaxed">
+                    {{ request.description }}
+                  </p>
+                  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <p class="text-sm text-gray-600 dark:text-gray-300 flex items-center font-semibold">
+                      <svg
+                        class="w-4 h-4 mr-2 text-red-500"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                        />
+                      </svg>
+                      📍 {{ request.distance || 'Рядом с вами' }}
+                    </p>
+                    <div class="flex gap-2">
+                      <button
+                        v-if="currentUser"
+                        type="button"
+                        class="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition"
+                        @click.stop="handleRequestClick(request.id)"
+                      >
+                        🤝 Откликнуться
+                      </button>
+                      <router-link
+                        v-else
+                        to="/login"
+                        class="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition"
+                      >
+                        Войти для отклика
+                      </router-link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              v-if="!isLoadingRequests && filteredRequests.length === 0"
+              class="text-center py-20"
+            >
+              <div class="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg
+                  class="w-12 h-12 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                  />
+                </svg>
+              </div>
+              <p class="text-gray-500 dark:text-gray-400 text-lg font-semibold">
+                Нет запросов поблизости
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Tab -->
+        <div
+          v-show="activeTab === 'chat'"
+          class="flex-1 flex flex-col overflow-hidden"
+        >
+          <PublicChatWidget
+            v-if="selectedRequestChat"
+            :chat-id="selectedRequestChat"
+            :full-height="true"
+          />
+          <div
+            v-else
+            class="flex-1 flex items-center justify-center p-8 text-center"
+          >
+            <div>
+              <div class="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg
+                  class="w-12 h-12 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                  />
+                </svg>
+              </div>
+              <p class="text-gray-500 dark:text-gray-400 text-lg font-semibold mb-2">
+                Выберите запрос
+              </p>
+              <p class="text-gray-400 dark:text-gray-500">
+                Кликните на маркер или запрос<br>чтобы открыть чат
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Кнопки управления картой / панелью (выше слоя карты) -->
+      <div class="absolute bottom-24 left-4 space-y-3 z-[1200] pointer-events-auto">
+        <!-- Кнопка показа панели (когда панель скрыта) -->
+        <button
+          v-if="currentUser && !isPanelVisible"
+          class="bg-blue-600 hover:bg-blue-700 rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-3 transition-all hover:scale-105"
+          title="Показать панель"
+          @click="isPanelVisible = true"
+        >
+          <svg
+            class="w-7 h-7 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+          <span class="text-white font-bold hidden sm:block">📋 Запросы</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Всплывающие уведомления о новых запросах рядом -->
+    <RequestNotification 
+      v-if="activeNotification"
+      :request="activeNotification"
+      @accept="handleAcceptNotification"
+      @reject="handleRejectNotification"
+      @timeout="handleTimeoutNotification"
+    />
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, watch, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import NavigationHeader from '@/components/NavigationHeader.vue'
+import PublicChatWidget from '@/components/PublicChatWidget.vue'
+import RequestNotification from '@/components/RequestNotification.vue'
+import OpenStreetMapWidget from '@/components/OpenStreetMapWidget.vue'
+import { useNotifications } from '@/composables/useNotifications'
+import { useGeolocation } from '@/composables/useGeolocation'
+import { useRequestHelpers } from '@/composables/useRequestHelpers'
+import { apiService } from '@/services/api'
+import { wsService } from '@/services/websocket'
+
+const { getProblemTypeName, formatDate } = useRequestHelpers()
+
+const router = useRouter()
+const authStore = useAuthStore()
+const currentUser = ref(null)
+const activeTab = ref('requests')
+const selectedRequestChat = ref(null)
+const isPanelVisible = ref(true)
+
+// Уведомления и геолокация
+const { activeNotification, addNotification, removeNotification } = useNotifications()
+const { latitude, longitude, calculateDistance } = useGeolocation()
+
+// Реальные запросы из API
+const requests = ref([])
+const isLoadingRequests = ref(false)
+
+// Ref для карты
+const mapWidgetRef = ref(null)
+
+// Фильтруем запросы для отображения в списке:
+// - Только активные заявки (исключаем completed, cancelled)
+// - Исключаем запросы текущего пользователя (чтобы не показывать свои запросы в общем списке)
+// На карте отображаются ВСЕ запросы (включая свои), чтобы пользователь видел где находится его запрос
+const filteredRequests = computed(() => {
+  if (!currentUser.value) {
+    // Если пользователь не авторизован, показываем все активные запросы
+    return requests.value.filter(request => {
+      const status = request.status?.toLowerCase()
+      return status === 'active' || status === 'accepted' || status === 'in_progress' || status === 'pending_acceptance'
+    })
+  }
+  
+  return requests.value.filter(request => {
+    const status = request.status?.toLowerCase()
+    const isActive = status === 'active' || status === 'accepted' || status === 'in_progress' || status === 'pending_acceptance'
+    
+    // Исключаем запросы текущего пользователя из общего списка
+    const isMyRequest = currentUser.value.id === request.user_id
+    
+    return isActive && !isMyRequest
+  })
+})
+
+onMounted(async () => {
+  const token = localStorage.getItem('token')
+  
+  if (token) {
+    // Пользователь авторизован
+    apiService.setToken(token)
+    
+    // Используем authStore вместо прямого чтения из localStorage
+    if (authStore.user) {
+      currentUser.value = authStore.user
+    } else {
+      // Если в store нет, проверяем localStorage и обновляем store
+      const userData = localStorage.getItem('user')
+      if (userData) {
+        try {
+          const user = JSON.parse(userData)
+          currentUser.value = user
+          authStore.user = user
+        } catch (e) {
+          console.error('Error parsing user data:', e)
+        }
+      }
+    }
+    
+    // Загружаем запросы
+    await loadRequests()
+    
+    // Подключаем WebSocket уведомления
+    setupWebSocketNotifications()
+  } else {
+    // Пользователь не авторизован - показываем карту с заявками для просмотра
+    console.log('Пользователь не авторизован - показываем карту в режиме просмотра')
+    // Загружаем заявки даже для неавторизованных пользователей
+    await loadRequests()
+  }
+})
+
+// Следим за изменениями пользователя в authStore
+watch(() => authStore.user, (newUser) => {
+  if (newUser) {
+    currentUser.value = newUser
+  }
+}, { immediate: true })
+
+// Загрузка запросов с API
+async function loadRequests() {
+  try {
+    isLoadingRequests.value = true
+    console.log('📥 Загрузка заявок с API...')
+    const response = await apiService.getHelpRequests({ status: 'active' })
+    console.log('📦 Полный ответ API:', response)
+    
+    // API может возвращать данные в разных форматах
+    const allRequests = response.data?.data || response.data || []
+    console.log(`📋 Получено заявок с API: ${allRequests.length}`)
+    console.log('📋 Первая заявка (пример):', allRequests[0])
+    
+    // Фильтруем только активные заявки (исключаем completed, cancelled)
+    // НЕ исключаем запросы текущего пользователя здесь, так как они могут понадобиться для отображения на карте
+    // Исключение происходит в computed filteredRequests
+    requests.value = allRequests.filter(request => {
+      const status = request.status?.toLowerCase()
+      const isActive = status === 'active' || status === 'accepted' || status === 'in_progress' || status === 'pending_acceptance'
+      
+      // Проверяем наличие координат
+      if (!request.latitude && !request.lat) {
+        console.warn('⚠️ Заявка без координат пропущена:', request.id, request)
+        return false
+      }
+      
+      return isActive
+    })
+    
+    console.log(`✅ Активных заявок с координатами: ${requests.value.length}`)
+    
+    // Нормализуем координаты для всех заявок
+    // DECIMAL из базы данных может приходить как строка, преобразуем в число
+    requests.value.forEach(request => {
+      // Преобразуем координаты в числа если они строки
+      if (request.latitude && typeof request.latitude === 'string') {
+        request.latitude = parseFloat(request.latitude)
+      }
+      if (request.longitude && typeof request.longitude === 'string') {
+        request.longitude = parseFloat(request.longitude)
+      }
+      
+      // Нормализуем поля lat/lon для совместимости
+      if (!request.lat && request.latitude !== undefined) request.lat = request.latitude
+      if (!request.lon && request.longitude !== undefined) request.lon = request.longitude
+      if (!request.type && request.problem_type) request.type = request.problem_type
+      
+      // Нормализуем изображения (может быть images или Images)
+      if (!request.images && request.Images) {
+        request.images = request.Images
+      }
+      if (!Array.isArray(request.images)) {
+        request.images = []
+      }
+      
+      // Логируем изображения для отладки
+      if (request.images && request.images.length > 0) {
+        console.log(`🖼️ Заявка ${request.id} имеет ${request.images.length} изображений:`, request.images)
+      }
+      
+      console.log(`📍 Заявка ${request.id}:`, {
+        latitude: request.latitude,
+        longitude: request.longitude,
+        lat: request.lat,
+        lon: request.lon,
+        status: request.status,
+        problem_type: request.problem_type
+      })
+    })
+    
+    console.log(`🗺️ Всего заявок передано в компонент карты: ${requests.value.length}`)
+    
+    // Добавляем вычисленное расстояние если есть геолокация
+    if (latitude.value && longitude.value) {
+      requests.value.forEach(request => {
+        const distance = calculateDistance(
+          latitude.value,
+          longitude.value,
+          request.latitude || request.lat,
+          request.longitude || request.lon
+        )
+        request.distance = `${distance.toFixed(1)} км от вас`
+        request.distanceKm = distance
+      })
+      
+      // Сортируем по расстоянию
+      requests.value.sort((a, b) => (a.distanceKm || 999) - (b.distanceKm || 999))
+    }
+    
+    console.log(`🗺️ Заявки готовы для отображения на карте: ${requests.value.length}`)
+  } catch (error) {
+    console.error('❌ Ошибка загрузки заявок:', error)
+    // Показываем пользователю сообщение об ошибке только если он авторизован
+    if (currentUser.value) {
+      console.error('Не удалось загрузить заявки. Попробуйте обновить страницу.')
+    }
+  } finally {
+    isLoadingRequests.value = false
+  }
+}
+
+function focusOnRequest(request) {
+  console.log('🎯 Фокусируемся на заявке:', {
+    id: request.id,
+    request: request,
+    latitude: request.latitude,
+    lat: request.lat,
+    longitude: request.longitude,
+    lon: request.lon
+  })
+  
+  // Нормализуем координаты - проверяем все возможные варианты
+  let lat = request.latitude ?? request.lat
+  let lon = request.longitude ?? request.lon
+  
+  // Если координаты - строки (DECIMAL из базы), преобразуем в числа
+  if (typeof lat === 'string') lat = parseFloat(lat)
+  if (typeof lon === 'string') lon = parseFloat(lon)
+  
+  console.log(`📍 Нормализованные координаты: lat=${lat}, lon=${lon}`)
+  
+  if (!lat || !lon || isNaN(lat) || isNaN(lon)) {
+    console.error('❌ Нет валидных координат для заявки:', {
+      id: request.id,
+      latitude: request.latitude,
+      lat: request.lat,
+      longitude: request.longitude,
+      lon: request.lon,
+      parsed: { lat, lon }
+    })
+    // Переходим на страницу отклика напрямую
+    handleRequestClick(request.id)
+    return
+  }
+
+  // Используем OpenStreetMap карту для приближения
+  if (mapWidgetRef.value && mapWidgetRef.value.focusOnRequest) {
+    try {
+      // Передаем заявку с нормализованными координатами
+      const requestWithCoords = {
+        ...request,
+        latitude: lat,
+        longitude: lon,
+        lat: lat,
+        lon: lon
+      }
+      console.log('📤 Передаю заявку в focusOnRequest:', requestWithCoords)
+      mapWidgetRef.value.focusOnRequest(requestWithCoords)
+      console.log('✅ Карта приближена к заявке через OpenStreetMap')
+    } catch (e) {
+      console.error('❌ Ошибка приближения карты OpenStreetMap:', e)
+    }
+  } else {
+    console.warn('⚠️ Карта OpenStreetMap не готова или метод focusOnRequest недоступен')
+  }
+
+  // Устанавливаем выбранный чат
+  selectedRequestChat.value = request.id
+
+  // На мобильных - сразу переходим на страницу отклика
+  if (window.innerWidth < 640) {
+    setTimeout(() => {
+      handleRequestClick(request.id)
+    }, 1000) // Даем время карте приблизиться
+  }
+}
+
+// Функции getIcon и getIconGradient используются в шаблоне для отображения списка заявок
+function getIcon(type) {
+  const icons = {
+    battery: '🔋',
+    fuel: '⛽',
+    tire: '🛞',
+    towing: '🚗',
+    sober_driver: '🚕',
+    road_conflict: '🚨'
+  }
+  return icons[type] || '❓'
+}
+
+function getIconGradient(type) {
+  const gradients = {
+    battery: 'bg-gradient-to-br from-orange-400 to-red-600',
+    fuel: 'bg-gradient-to-br from-green-400 to-green-600',
+    tire: 'bg-gradient-to-br from-purple-400 to-purple-600',
+    towing: 'bg-gradient-to-br from-blue-400 to-blue-600',
+    sober_driver: 'bg-gradient-to-br from-yellow-400 to-orange-500',
+    road_conflict: 'bg-gradient-to-br from-red-500 to-red-700'
+  }
+  return gradients[type] || 'bg-gradient-to-br from-gray-400 to-gray-600'
+}
+
+function centerOnUser() {
+  // Используем метод из OpenStreetMapWidget
+  if (mapWidgetRef.value && mapWidgetRef.value.getUserLocation) {
+    mapWidgetRef.value.getUserLocation()
+  }
+}
+
+// async function handleLogout() {
+//   localStorage.removeItem('token')
+//   localStorage.removeItem('user')
+//   localStorage.removeItem('rememberMe')
+//   localStorage.removeItem('savedUser')
+//   
+//   window.location.href = '/'
+// }
+
+// ============ ОБРАБОТКА УВЕДОМЛЕНИЙ ============
+
+// Обработка принятия уведомления
+async function handleAcceptNotification(request) {
+  try {
+    // Проверяем геолокацию
+    let userLat = latitude.value
+    let userLon = longitude.value
+    
+    if (!userLat || !userLon) {
+      alert('Включите геолокацию для отклика')
+      return
+    }
+
+    // Вычисляем расстояние и ETA
+    const distance = calculateDistance(
+      userLat,
+      userLon,
+      request.latitude,
+      request.longitude
+    )
+    const etaMinutes = Math.ceil((distance / 40) * 60)
+
+    // Создаем отклик
+    await apiService.createResponse(request.id, {
+      message: 'Я рядом, могу помочь!',
+      latitude: userLat,
+      longitude: userLon,
+      eta_minutes: etaMinutes
+    })
+
+    removeNotification()
+    alert('✅ Ваш отклик отправлен! Ожидайте ответа от автора запроса.')
+  } catch (error) {
+    console.error('Error accepting notification:', error)
+    alert('❌ Ошибка отправки отклика')
+  }
+}
+
+// Обработка отклонения уведомления
+function handleRejectNotification(request) {
+  removeNotification()
+  console.log('Request rejected:', request.id)
+}
+
+// Обработка таймаута уведомления
+function handleTimeoutNotification(request) {
+  removeNotification()
+  console.log('Notification timeout:', request.id)
+}
+
+// Обработчик клика на заявку с карты
+function handleRequestClick(requestId) {
+  console.log('Заявка кликнута:', requestId)
+  
+  // Устанавливаем выбранную заявку для чата
+  selectedRequestChat.value = requestId
+  
+  // Переключаем на вкладку чата
+  activeTab.value = 'chat'
+  
+  console.log('Чат открыт для заявки:', requestId)
+}
+
+// Подключение WebSocket уведомлений
+function setupWebSocketNotifications() {
+  // Подключаемся к WebSocket
+  const token = localStorage.getItem('token')
+  if (token && !wsService.isConnected.value) {
+    wsService.connect(token)
+  }
+
+  // Слушаем новые запросы
+  wsService.on('helpRequest:created', (data) => {
+    const newRequest = data.helpRequest
+    
+    // Проверяем что заявка активная
+    const status = newRequest.status?.toLowerCase()
+    if (status !== 'active' && status !== 'accepted' && status !== 'in_progress' && status !== 'pending_acceptance') {
+      console.log('Пропущена неактивная заявка:', newRequest.id, status)
+      return
+    }
+    
+    // Добавляем новый запрос в список
+    requests.value.unshift(newRequest)
+    
+    // Если есть геолокация - вычисляем расстояние
+    if (latitude.value && longitude.value) {
+      const distance = calculateDistance(
+        latitude.value,
+        longitude.value,
+        newRequest.latitude,
+        newRequest.longitude
+      )
+      newRequest.distance = `${distance.toFixed(1)} км от вас`
+      newRequest.distanceKm = distance
+      
+      // Показываем уведомление если запрос близко (в радиусе 5 км)
+      if (distance <= 5) {
+        addNotification(newRequest)
+      }
+      
+      // Пересортировываем по расстоянию
+      requests.value.sort((a, b) => (a.distanceKm || 999) - (b.distanceKm || 999))
+    }
+    
+    console.log('Новый активный запрос получен через WebSocket:', newRequest)
+  })
+
+  // Слушаем принятые запросы
+  wsService.on('helpRequest:accepted', (data) => {
+    const index = requests.value.findIndex(r => r.id === data.helpRequestId)
+    if (index !== -1) {
+      requests.value[index].status = 'accepted'
+      requests.value[index].helper_id = data.helperId
+      console.log('Заявка принята:', data.helpRequestId)
+    }
+  })
+
+  // Слушаем завершённые запросы
+  wsService.on('helpRequest:completed', (data) => {
+    const index = requests.value.findIndex(r => r.id === data.helpRequestId)
+    if (index !== -1) {
+      // Удаляем из списка активных
+      requests.value.splice(index, 1)
+      console.log('Заявка завершена и удалена из списка:', data.helpRequestId)
+    }
+  })
+
+  // Слушаем отменённые запросы
+  wsService.on('helpRequest:cancelled', (data) => {
+    const index = requests.value.findIndex(r => r.id === data.helpRequestId)
+    if (index !== -1) {
+      // Удаляем из списка активных
+      requests.value.splice(index, 1)
+      console.log('Заявка отменена и удалена из списка:', data.helpRequestId)
+    }
+  })
+}
+</script>

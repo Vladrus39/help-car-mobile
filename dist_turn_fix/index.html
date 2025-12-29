@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<!-- 
+  RoadHelp Frontend
+  By VladRus39
+  Description: P2P платформа для автомобилистов Help-Car
+-->
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512x512.png">
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Mobile optimization -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- SEO and PWA -->
+    <meta name="description" content="Help-Car - P2P платформа взаимопомощи для автомобилистов на дорогах России">
+    <meta name="theme-color" content="#2563EB">
+    <meta name="msapplication-TileColor" content="#2563EB">
+    
+    <!-- Cache Control -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+      <title>🚗 Help Car - Помощь на дорогах</title>
+    
+    <!-- OpenStreetMap (работает без API ключей) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Mobile UI Fixes -->
+    <style>
+      @media (max-width: 640px) {
+        /* Скрыть быструю навигацию на мобильном */
+        nav[aria-label="Быстрая навигация"] {
+          display: none !important;
+        }
+        
+        /* Исправить z-index карты */
+        .leaflet-control-container {
+          z-index: 1050 !important;
+        }
+        
+        /* Панель заявок/чата - переместить вниз и уменьшить */
+        .mobile-requests-panel {
+          top: auto !important;
+          left: 0.5rem !important;
+          right: 0.5rem !important;
+          bottom: 5rem !important;
+          height: 45vh !important;
+          max-height: 45vh !important;
+          width: calc(100% - 1rem) !important;
+        }
+        
+        /* Кнопки вкладок - улучшить читаемость */
+        .mobile-requests-panel button {
+          padding: 0.75rem 0.5rem !important;
+          font-size: 0.875rem !important;
+          min-height: 44px !important;
+        }
+        
+        /* Заголовок - исправить перекрытие */
+        header {
+          z-index: 1000 !important;
+        }
+        
+        /* Кнопка SOS - исправить перекрытие картой */
+        .fixed.bottom-20.right-4 {
+          bottom: 3.5rem !important;
+          right: 0.75rem !important;
+          z-index: 1200 !important;
+        }
+        
+        /* Кнопка подачи заявки - исправить перекрытие */
+        .fixed.bottom-20.right-4 a {
+          z-index: 1200 !important;
+          position: relative !important;
+        }
+        
+        /* Карта не должна перекрывать кнопки */
+        .leaflet-container {
+          z-index: 100 !important;
+        }
+        
+        /* Улучшить видимость кнопки SOS */
+        .fixed.bottom-20.right-4 .group {
+          z-index: 1200 !important;
+          position: relative !important;
+        }
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-BxfSuIcm-v1766841230394.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-mW7CftnD-v1766841230394.js">
+    <link rel="modulepreload" crossorigin href="/assets/maps-CCq-KL9W-v1766841230394.js">
+    <link rel="modulepreload" crossorigin href="/assets/utils-BASWCPVD-v1766841230394.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-ZdUEnL_Q.css">
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+</html>

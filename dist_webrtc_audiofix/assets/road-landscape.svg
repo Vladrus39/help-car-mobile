@@ -1,0 +1,132 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Небо с градиентом -->
+  <defs>
+    <linearGradient id="sky-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#7CB9E8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#B3D9F2;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="road-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4A5568;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2D3748;stop-opacity:1" />
+    </linearGradient>
+
+    <linearGradient id="field-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#48BB78;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#38A169;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Небо -->
+  <rect width="1920" height="700" fill="url(#sky-gradient)"/>
+
+  <!-- Солнце -->
+  <circle cx="1600" cy="200" r="80" fill="#FDB927" opacity="0.9">
+    <animate attributeName="opacity" values="0.8;1;0.8" dur="4s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="1600" cy="200" r="100" fill="#FDB927" opacity="0.3"/>
+
+  <!-- Облака -->
+  <g opacity="0.7">
+    <!-- Облако 1 -->
+    <ellipse cx="300" cy="150" rx="100" ry="40" fill="white" opacity="0.8"/>
+    <ellipse cx="350" cy="140" rx="80" ry="35" fill="white" opacity="0.8"/>
+    <ellipse cx="250" cy="145" rx="70" ry="30" fill="white" opacity="0.8"/>
+    
+    <!-- Облако 2 -->
+    <ellipse cx="800" cy="250" rx="120" ry="45" fill="white" opacity="0.7"/>
+    <ellipse cx="860" cy="240" rx="90" ry="40" fill="white" opacity="0.7"/>
+    <ellipse cx="740" cy="245" rx="80" ry="35" fill="white" opacity="0.7"/>
+    
+    <!-- Облако 3 -->
+    <ellipse cx="1400" cy="180" rx="110" ry="42" fill="white" opacity="0.75"/>
+    <ellipse cx="1460" cy="170" rx="85" ry="38" fill="white" opacity="0.75"/>
+    <ellipse cx="1340" cy="175" rx="75" ry="32" fill="white" opacity="0.75"/>
+  </g>
+
+  <!-- Поля/луга на горизонте -->
+  <path d="M 0 700 Q 480 650 960 680 T 1920 700 L 1920 850 L 0 850 Z" fill="url(#field-gradient)" opacity="0.6"/>
+  <path d="M 0 750 Q 480 720 960 740 T 1920 750 L 1920 850 L 0 850 Z" fill="#2F855A" opacity="0.4"/>
+
+  <!-- Деревья вдали -->
+  <g opacity="0.5">
+    <rect x="200" y="680" width="15" height="60" fill="#2D3748"/>
+    <ellipse cx="207" cy="670" rx="30" ry="35" fill="#2F855A"/>
+    
+    <rect x="500" y="690" width="12" height="50" fill="#2D3748"/>
+    <ellipse cx="506" cy="680" rx="25" ry="30" fill="#2F855A"/>
+    
+    <rect x="1200" y="685" width="14" height="55" fill="#2D3748"/>
+    <ellipse cx="1207" cy="675" rx="28" ry="33" fill="#2F855A"/>
+    
+    <rect x="1600" y="695" width="11" height="45" fill="#2D3748"/>
+    <ellipse cx="1606" cy="687" rx="23" ry="28" fill="#2F855A"/>
+  </g>
+
+  <!-- Дорога (перспектива) -->
+  <path d="M 760 1080 L 600 850 L 1320 850 L 1160 1080 Z" fill="url(#road-gradient)"/>
+  
+  <!-- Обочина левая -->
+  <path d="M 600 850 L 520 1080 L 760 1080 Z" fill="#718096"/>
+  
+  <!-- Обочина правая -->
+  <path d="M 1320 850 L 1160 1080 L 1400 1080 Z" fill="#718096"/>
+
+  <!-- Белая разметка (прерывистая линия) -->
+  <g fill="white" opacity="0.9">
+    <rect x="950" y="860" width="20" height="60" rx="3"/>
+    <rect x="950" y="940" width="20" height="60" rx="3"/>
+    <rect x="950" y="1020" width="20" height="60" rx="3"/>
+  </g>
+
+  <!-- Дорожные знаки -->
+  <!-- Знак слева -->
+  <rect x="550" y="880" width="8" height="120" fill="#4A5568"/>
+  <rect x="530" y="880" width="48" height="48" fill="#DC2626" rx="4"/>
+  <text x="554" y="910" font-family="Arial" font-size="24" font-weight="bold" fill="white" text-anchor="middle">!</text>
+
+  <!-- Столбики вдоль дороги -->
+  <g fill="#E2E8F0">
+    <rect x="580" y="870" width="6" height="40" opacity="0.6"/>
+    <rect x="620" y="900" width="6" height="45" opacity="0.6"/>
+    <rect x="660" y="930" width="6" height="50" opacity="0.6"/>
+    <rect x="700" y="960" width="6" height="55" opacity="0.6"/>
+    
+    <rect x="1300" y="870" width="6" height="40" opacity="0.6"/>
+    <rect x="1260" y="900" width="6" height="45" opacity="0.6"/>
+    <rect x="1220" y="930" width="6" height="50" opacity="0.6"/>
+    <rect x="1180" y="960" width="6" height="55" opacity="0.6"/>
+  </g>
+
+  <!-- Птицы в небе -->
+  <g stroke="#2D3748" stroke-width="2" fill="none" opacity="0.4">
+    <path d="M 400 300 Q 410 295 420 300" />
+    <path d="M 425 305 Q 435 300 445 305" />
+    
+    <path d="M 1100 220 Q 1110 215 1120 220" />
+    <path d="M 1125 225 Q 1135 220 1145 225" />
+  </g>
+</svg>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

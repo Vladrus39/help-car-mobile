@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "986564669652",
+    "project_id": "roadhelp-14383",
+    "storage_bucket": "roadhelp-14383.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:986564669652:android:16e3d9503740c36cc4cb41",
+        "android_client_info": {
+          "package_name": "online.helpcar.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLBYcm7fK-NLrBGaofGy6GjcpHZVcx4lg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,42 @@
+{
+  "name": "roadhelp-frontend",
+  "version": "2.0.0",
+  "description": "RoadHelp Frontend - Production Ready PWA",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test:unit": "vitest",
+    "test:e2e": "playwright test",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
+    "format": "prettier --write src/"
+  },
+  "dependencies": {
+    "vue": "^3.3.11",
+    "vue-router": "^4.2.5",
+    "pinia": "^2.1.7",
+    "axios": "^1.6.2",
+    "axios-retry": "^4.0.0",
+    "socket.io-client": "^4.6.1",
+    "leaflet": "^1.9.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.5.2",
+    "vite": "^5.0.8",
+    "terser": "^5.26.0",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.4.0",
+    "vite-plugin-pwa": "^0.17.4",
+    "workbox-window": "^7.0.0",
+    "@sentry/vue": "^7.91.0",
+    "vitest": "^1.1.0",
+    "@vue/test-utils": "^2.4.3",
+    "@playwright/test": "^1.40.1",
+    "happy-dom": "^12.10.3",
+    "@vitest/coverage-v8": "^1.1.0"
+  }
+}
+
