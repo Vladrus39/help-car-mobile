@@ -1,0 +1,79 @@
+{
+  "appId": "online.helpcar.app",
+  "appName": "Help Car",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "iosScheme": "capacitor",
+    "allowNavigation": [
+      "help-car.online",
+      "*.help-car.online",
+      "firebaseapp.com",
+      "*.firebaseapp.com",
+      "*.googleapis.com"
+    ]
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1000,
+      "launchAutoHide": true,
+      "launchFadeOutDuration": 200,
+      "backgroundColor": "#2563EB",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false
+    },
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_notification",
+      "iconColor": "#2563EB",
+      "sound": "notification.wav"
+    },
+    "Keyboard": {
+      "resize": "body",
+      "resizeOnFullScreen": true,
+      "style": "DARK"
+    },
+    "StatusBar": {
+      "style": "LIGHT",
+      "backgroundColor": "#2563EB",
+      "overlaysWebView": false
+    },
+    "Badge": {
+      "persist": true,
+      "autoClear": false
+    },
+    "CapacitorUpdater": {
+      "autoUpdate": true,
+      "updateUrl": "https://help-car.online/api/v1/app/update-manifest",
+      "appReadyTimeout": 10000,
+      "responseTimeout": 60,
+      "autoDeleteFailed": true,
+      "autoDeletePrevious": true,
+      "resetWhenUpdate": false,
+      "directUpdate": false
+    }
+  },
+  "android": {
+    "webContentsDebuggingEnabled": true,
+    "allowMixedContent": true,
+    "captureInput": true,
+    "useLegacyBridge": false,
+    "backgroundColor": "#ffffff",
+    "minWebViewVersion": "70",
+    "includePlugins": [
+      "@capacitor/push-notifications",
+      "@capacitor/local-notifications",
+      "@capgo/capacitor-updater"
+    ]
+  },
+  "ios": {
+    "scheme": "helpcar",
+    "contentInset": "automatic",
+    "limitsNavigationsToAppBoundDomains": false,
+    "preferredContentMode": "mobile",
+    "backgroundColor": "#ffffff"
+  }
+}
